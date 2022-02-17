@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.16.1
+# v0.17.7
 
 using Markdown
 using InteractiveUtils
@@ -7,8 +7,9 @@ using InteractiveUtils
 # This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
 macro bind(def, element)
     quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
         local el = $(esc(element))
-        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : missing
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
         el
     end
 end
@@ -22,21 +23,28 @@ using PlutoUI
 # ╔═╡ 6c112ad9-db37-46df-9d33-2ba9b10b6884
 using FileIO
 
-# ╔═╡ 1c2ae7d9-dd33-4cef-99f2-d5b0e4a6aba5
-using Colors
-
 # ╔═╡ 4bb8ce51-a804-4504-861d-77b15a9f37e3
 begin
 	using ImageIO
 	using ImageMagick
+	using ImageShow
 end
+
+# ╔═╡ 1c2ae7d9-dd33-4cef-99f2-d5b0e4a6aba5
+using Colors
 
 # ╔═╡ bfd8ab61-c71a-47cd-a7a4-dc63e47eedd7
 struct Whiteboard
-	function Whiteboard(;w=650, h=400, pw=2, ew=20)
+	function Whiteboard(;w=650, h=400, pw=2, ew=20, strokecolor="#888888ff", customcss="")
 htl"""
+<style>
+	canvas {
+		border: 2px solid;
+	}
+	$(customcss)
+</style>
 <div>
-	<canvas width="$w" height="$h" style="border: 2px solid;"></canvas>
+	<canvas width="$w" height="$h"></canvas>
 	<div><button>Toggle Eraser</button><button>Erase</button></div>
 </div>
 <script>
@@ -60,7 +68,7 @@ function redraw(context) {
         context.globalCompositeOperation = "source-over"
         context.lineWidth = $pw
     }
-    context.strokeStyle = "#000000"
+    context.strokeStyle = $(strokecolor)
     context.lineJoin = "miter"
     for(let i=0; i < clickX.length; i++) {
         context.beginPath()
@@ -76,7 +84,7 @@ function redraw(context) {
 }
 function handleDown(e, context){
     ink = true
-    addClick(e.layerX-8, e.layerY, false)
+    addClick(e.layerX-12, e.layerY, false)
     redraw(context)
     e.preventDefault()
     e.stopPropagation()
@@ -92,7 +100,7 @@ function handleUp(e){
 }
 function handleMove(e, context) {
     if(ink){
-        addClick(e.layerX-8, e.layerY, true);
+        addClick(e.layerX-12, e.layerY, true);
         redraw(context);
     }
     e.preventDefault()
@@ -132,10 +140,11 @@ end
 end
 
 # ╔═╡ 835a11a2-1e28-41d6-af98-fd1a3ed349cb
-@bind e Whiteboard()
+@bind e Whiteboard(strokecolor="#982341")
 
 # ╔═╡ ba04ff27-d56c-42e3-94e1-1824a4dc001f
 function getimage(e)
+	@warn typeof(e)
 	reshape(e[3], 4, :) |> 
 	t->mapslices(t, dims=1) do px
 		RGBA(px ./256 ...)
@@ -154,6 +163,7 @@ FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
 HypertextLiteral = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
 ImageIO = "82e4d734-157c-48bb-816b-45c225c6df19"
 ImageMagick = "6218d12a-5da1-5696-b52f-db25d2ecc6d1"
+ImageShow = "4e3cecfd-b093-5904-9786-8bbb286a6a31"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
@@ -162,6 +172,7 @@ FileIO = "~1.11.1"
 HypertextLiteral = "~0.9.0"
 ImageIO = "~0.5.8"
 ImageMagick = "~1.2.1"
+ImageShow = "~0.3.3"
 PlutoUI = "~0.7.14"
 """
 
@@ -263,6 +274,12 @@ git-tree-sha1 = "335bfdceacc84c5cdf16aadc768aa5ddfc5383cc"
 uuid = "53c48c17-4a7d-5ca2-90c5-79b7896eea93"
 version = "0.8.4"
 
+[[Ghostscript_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "78e2c69783c9753a91cdae88a8d432be85a2ab5e"
+uuid = "61579ee1-b43e-5ca0-a5da-69d92c66a64b"
+version = "9.55.0+0"
+
 [[Graphics]]
 deps = ["Colors", "LinearAlgebra", "NaNMath"]
 git-tree-sha1 = "1c5a84319923bea76fa145d49e93aa4394c73fc2"
@@ -279,6 +296,12 @@ deps = ["Logging", "Random"]
 git-tree-sha1 = "f7be53659ab06ddc986428d3a9dcc95f6fa6705a"
 uuid = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
 version = "0.2.2"
+
+[[ImageBase]]
+deps = ["ImageCore", "Reexport"]
+git-tree-sha1 = "b51bb8cae22c66d0f6357e3bcb6363145ef20835"
+uuid = "c817782e-172a-44cc-b673-b171935fbb9e"
+version = "0.1.5"
 
 [[ImageCore]]
 deps = ["AbstractFFTs", "ColorVectorSpace", "Colors", "FixedPointNumbers", "Graphics", "MappedArrays", "MosaicViews", "OffsetArrays", "PaddedViews", "Reexport"]
@@ -299,10 +322,16 @@ uuid = "6218d12a-5da1-5696-b52f-db25d2ecc6d1"
 version = "1.2.1"
 
 [[ImageMagick_jll]]
-deps = ["Artifacts", "JLLWrappers", "JpegTurbo_jll", "Libdl", "Libtiff_jll", "Pkg", "Zlib_jll", "libpng_jll"]
-git-tree-sha1 = "ea2b6fd947cdfc43c6b8c15cff982533ec1f72cd"
+deps = ["Artifacts", "Ghostscript_jll", "JLLWrappers", "JpegTurbo_jll", "Libdl", "Libtiff_jll", "Pkg", "Zlib_jll", "libpng_jll"]
+git-tree-sha1 = "f025b79883f361fa1bd80ad132773161d231fd9f"
 uuid = "c73af94c-d91f-53ed-93a7-00f77d67a9d7"
-version = "6.9.12+0"
+version = "6.9.12+2"
+
+[[ImageShow]]
+deps = ["Base64", "FileIO", "ImageBase", "ImageCore", "OffsetArrays", "StackViews"]
+git-tree-sha1 = "d0ac64c9bee0aed6fdbb2bc0e5dfa9a3a78e3acc"
+uuid = "4e3cecfd-b093-5904-9786-8bbb286a6a31"
+version = "0.3.3"
 
 [[Imath_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -373,7 +402,7 @@ uuid = "89763e89-9b03-5906-acba-b20f662cd828"
 version = "4.3.0+0"
 
 [[LinearAlgebra]]
-deps = ["Libdl"]
+deps = ["Libdl", "libblastrampoline_jll"]
 uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[LogExpFunctions]]
@@ -429,6 +458,10 @@ deps = ["Adapt"]
 git-tree-sha1 = "c0e9e582987d36d5a61e650e6e543b9e44d9914b"
 uuid = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
 version = "1.10.7"
+
+[[OpenBLAS_jll]]
+deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
+uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
 
 [[OpenEXR]]
 deps = ["Colors", "FileIO", "OpenEXR_jll"]
@@ -512,7 +545,7 @@ deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]
 uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 
 [[Random]]
-deps = ["Serialization"]
+deps = ["SHA", "Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [[Reexport]]
@@ -600,6 +633,10 @@ git-tree-sha1 = "cc4bf3fdde8b7e3e9fa0351bdeedba1cf3b7f6e6"
 uuid = "3161d3a3-bdf6-5164-811a-617609db77b4"
 version = "1.5.0+0"
 
+[[libblastrampoline_jll]]
+deps = ["Artifacts", "Libdl", "OpenBLAS_jll"]
+uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
+
 [[libpng_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg", "Zlib_jll"]
 git-tree-sha1 = "94d180a6d2b5e55e447e2d27a29ed04fe79eb30c"
@@ -619,11 +656,11 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═fda278b8-2610-11ec-15dd-b335a2953224
 # ╠═392ffa99-f579-4286-b7c4-9351c5e3bf2e
 # ╠═6c112ad9-db37-46df-9d33-2ba9b10b6884
-# ╟─bfd8ab61-c71a-47cd-a7a4-dc63e47eedd7
+# ╠═4bb8ce51-a804-4504-861d-77b15a9f37e3
+# ╠═bfd8ab61-c71a-47cd-a7a4-dc63e47eedd7
 # ╠═835a11a2-1e28-41d6-af98-fd1a3ed349cb
 # ╠═574afd3a-60d6-4fa9-a598-4cc3dc5a0d2b
 # ╠═ba04ff27-d56c-42e3-94e1-1824a4dc001f
 # ╠═1c2ae7d9-dd33-4cef-99f2-d5b0e4a6aba5
-# ╠═4bb8ce51-a804-4504-861d-77b15a9f37e3
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

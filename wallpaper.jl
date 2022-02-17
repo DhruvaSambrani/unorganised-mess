@@ -40,7 +40,7 @@ begin
 	annotate!([(2.5, 0.1, text(L"x_{n+1} = rx_n(1-x_n)", 24, RGB(103/255, 187/255, 252/255)))])
 	savefig("ritcher.png")
 	current()
-end
+end;
 
 # ╔═╡ 721bca49-839b-4787-8ebd-d97036605fea
 begin
@@ -52,10 +52,32 @@ begin
 	annotate!([(-0.001, 0.01, text(L"\pi", 64, RGB(103/255, 187/255, 252/255)))])
 	savefig("pi.png")
 	current()
-end
+end;
 
 # ╔═╡ 42d911e8-8bde-44d8-9654-64b861f94972
+begin
+	arr = zeros(Bool, 30)
+	arr[rand(1:30)] = true
+end
 
+# ╔═╡ 4814329e-bec4-44b5-b5a0-3d1d20fb1a0b
+bernoulli(p) = rand() < p
+
+# ╔═╡ 1dbf4fe2-9a16-4192-a8af-9c9a19f8afd1
+function update(arr, t)
+	newarr = copy(arr)
+	map(findall(arr)) do ind
+		if bernoulli(t)
+			newarr[ind - 1] ⊻= true
+			newarr[ind + 1] ⊻= true
+		elseif bernoulli(1)
+		end	
+	end
+	newarr
+end
+
+# ╔═╡ c797d1fc-b2b7-47d6-94ab-3aa59077e9b4
+update(arr, 0.3)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -909,9 +931,9 @@ version = "1.6.38+0"
 
 [[deps.libvorbis_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Ogg_jll", "Pkg"]
-git-tree-sha1 = "c45f4e40e7aafe9d086379e5578947ec8b95a8fb"
+git-tree-sha1 = "b910cb81ef3fe6e78bf6acee440bda86fd6ae00c"
 uuid = "f27f6e37-5d2b-51aa-960f-b287f2bc3b7a"
-version = "1.3.7+0"
+version = "1.3.7+1"
 
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -950,5 +972,8 @@ version = "0.9.1+5"
 # ╠═07d17cda-02f2-4704-93c6-4882ec809478
 # ╠═721bca49-839b-4787-8ebd-d97036605fea
 # ╠═42d911e8-8bde-44d8-9654-64b861f94972
+# ╠═4814329e-bec4-44b5-b5a0-3d1d20fb1a0b
+# ╠═1dbf4fe2-9a16-4192-a8af-9c9a19f8afd1
+# ╠═c797d1fc-b2b7-47d6-94ab-3aa59077e9b4
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
